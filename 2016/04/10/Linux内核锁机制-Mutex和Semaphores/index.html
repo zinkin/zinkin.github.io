@@ -7,7 +7,7 @@
     
 
     <title>
-      Zinkin 
+      Linux内核锁机制:Mutex和Semaphores | Zinkin 
     </title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -15,18 +15,29 @@
       <meta name="author" content="Zinkin">
     
     
-      <meta name="description" content="丁增健的博客">
-    
 
-    <meta name="description" content="丁增健的博客">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Zinkin">
-<meta property="og:url" content="http://yoursite.com/index.html">
+    <meta name="description" content="为什么将Mutex(互斥锁)与信号量(semaphores)放在一起讲呢？ 因为有种信号量叫binary semaphore，也就是二元信号量，与mutex是非常像的。我记得大学上操作系统那门课的时候，就常常将他们弄混乱。
+当然，其实它们也非常容易区分：
+
+semaphore常用于消费者-生产者场景，锁变量可以是多个值;而mutex只能是0或者1
+二元信号量(binary semaphore)和m">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核锁机制:Mutex和Semaphores | Zinkin">
+<meta property="og:url" content="http://yoursite.com/2016/04/10/Linux内核锁机制-Mutex和Semaphores/index.html">
 <meta property="og:site_name" content="Zinkin">
-<meta property="og:description" content="丁增健的博客">
+<meta property="og:description" content="为什么将Mutex(互斥锁)与信号量(semaphores)放在一起讲呢？ 因为有种信号量叫binary semaphore，也就是二元信号量，与mutex是非常像的。我记得大学上操作系统那门课的时候，就常常将他们弄混乱。
+当然，其实它们也非常容易区分：
+
+semaphore常用于消费者-生产者场景，锁变量可以是多个值;而mutex只能是0或者1
+二元信号量(binary semaphore)和m">
+<meta property="og:updated_time" content="2016-04-10T11:15:38.225Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Zinkin">
-<meta name="twitter:description" content="丁增健的博客">
+<meta name="twitter:title" content="Linux内核锁机制:Mutex和Semaphores | Zinkin">
+<meta name="twitter:description" content="为什么将Mutex(互斥锁)与信号量(semaphores)放在一起讲呢？ 因为有种信号量叫binary semaphore，也就是二元信号量，与mutex是非常像的。我记得大学上操作系统那门课的时候，就常常将他们弄混乱。
+当然，其实它们也非常容易区分：
+
+semaphore常用于消费者-生产者场景，锁变量可以是多个值;而mutex只能是0或者1
+二元信号量(binary semaphore)和m">
     
     
     
@@ -46,8 +57,8 @@
     </span>
 
     
- 
-<header class="panel-cover">
+
+<header class="panel-cover panel-cover--collapsed">
 
 
   <div class="panel-main">
@@ -151,64 +162,65 @@ classes that you can use:
         <div class="content-wrapper__inner entry">
             
 
+<article class="post-container post-container--single">
 
-   <!-- do nothing -->
-
-
-<div class="main-post-list">
-    <ol class="post-list">
+  <header class="post-header">
     
-    
-    <li>
+    <h1 class="post-title">Linux内核锁机制:Mutex和Semaphores</h1>
 
-      <h2 class="post-list__post-title post-title">
-        <a href="/2016/04/10/Linux内核锁机制-Mutex和Semaphores/" title="link to Linux内核锁机制:Mutex和Semaphores">Linux内核锁机制:Mutex和Semaphores</a>
-      </h2>
-
-      <div class="post-list__meta">
-
-        <time datetime="2016-04-10" class="post-list__meta--date date">2016-04-10</time> 
-      </div>
-
-      <div class="excerpt">
-        
-      </div>
-
-      <hr class="post-list__divider" />
-    </li>
-    
-    <li>
-
-      <h2 class="post-list__post-title post-title">
-        <a href="/2016/04/09/Linux内核锁机制：spinlock/" title="link to Linux内核锁机制：spinlock">Linux内核锁机制：spinlock</a>
-      </h2>
-
-      <div class="post-list__meta">
-
-        <time datetime="2016-04-09" class="post-list__meta--date date">2016-04-09</time> 
-      </div>
-
-      <div class="excerpt">
-        
-      </div>
-
-      <hr class="post-list__divider" />
-    </li>
-    
-  </ol>
-
-  <hr class="post-list__divider " />
-
-<nav class="pagination" role="navigation">
     
 
-    <span class="pagination__page-number"> 1 / 1</span>
+    <div class="post-meta">
+      <time datetime="2016-04-10" class="post-meta__date date">2016-04-10</time> 
+
+      <span class="post-meta__tags tags">
+
+          
+
+          
+
+      </span>
+    </div>
     
     
-</nav>
+
+  </header>
+
+  <section id="post-content" class="article-content post">
+    <p>为什么将Mutex(互斥锁)与信号量(semaphores)放在一起讲呢？ 因为有种信号量叫binary semaphore，也就是二元信号量，与mutex是非常像的。我记得大学上操作系统那门课的时候，就常常将他们弄混乱。</p>
+<p>当然，其实它们也非常容易区分：</p>
+<ol>
+<li>semaphore常用于消费者-生产者场景，锁变量可以是多个值;而mutex只能是0或者1</li>
+<li>二元信号量(binary semaphore)和mutex的所变量都只能是0/1值， 但mutex的占有和释放都只能是同一个进程，binary semaphore的占有和释放可以是不同进程。例如,某个mutex被进程A占有，那么这个mutex最后只能被A释放；某个二元信号量被进程A占有，但是它可以被另外一个生产进程满足后释放锁。</li>
+</ol>
+
+  </section>
+
+  
+  
+
+<section class="post-comments">
+
+    <div class="ds-thread" data-thread-key="2016/04/10/Linux内核锁机制-Mutex和Semaphores/"></div>
+
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"Justin"};
+      (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0] 
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+      })();
+    </script> 
+
+</section>
 
 
-</div>
+</article>
+
+
             <footer class="footer">
 
     <span class="footer__copyright">&copy; 2014-2015. | 由<a href="https://hexo.io/">Hexo</a>强力驱动 | 主题<a href="https://github.com/someus/huno">Huno</a></span>
@@ -236,6 +248,18 @@ classes that you can use:
 
 
     
+
+    <script src="/js/awesome-toc.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $.awesome_toc({
+                overlay: true,
+                contentId: "post-content",
+            });
+        });
+    </script>
+
+
     
     
     <!--kill ie6 -->
